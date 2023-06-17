@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/chuqingq/go-util"
+	sjson "github.com/chuqingq/simple-json"
 )
 
 // SubProcess 对os.exec.Cmd的封装，用于启动子进程
@@ -25,8 +25,8 @@ type SubProcess struct {
 	HandleStderr StderrHandler
 }
 
-// StdoutHandler 用于处理子进程的stdout输出，(*util.Message, error)
-type StdoutHandler func(*util.Message, error)
+// StdoutHandler 用于处理子进程的stdout输出，(*json.Json, error)
+type StdoutHandler func(*sjson.Json, error)
 
 // StderrHandler 用于处理子进程的stderr输出，io.Writer
 type StderrHandler io.Writer
@@ -134,7 +134,7 @@ func (s *SubProcess) IsAlive() bool {
 }
 
 // Send 向子进程发送消息
-func (s *SubProcess) Send(m *util.Message) error {
+func (s *SubProcess) Send(m *sjson.Json) error {
 	err := s.encoder.Encode(m)
 	if err == io.ErrClosedPipe || err == io.EOF || strings.Contains(err.Error(), "broken pipe") {
 		s.Cancel()
@@ -144,8 +144,8 @@ func (s *SubProcess) Send(m *util.Message) error {
 }
 
 // doRecvOutMsg 从子进程接收消息
-func (s *SubProcess) doRecvOutMsg() (*util.Message, error) {
-	m := util.NewMessage()
+func (s *SubProcess) doRecvOutMsg() (*sjson.Json, error) {
+	m := sjson.New()
 	err := s.decoder.Decode(m)
 	if err != nil {
 		if err == io.EOF {
