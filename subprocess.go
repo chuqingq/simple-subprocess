@@ -19,7 +19,7 @@ type SubProcess struct {
 	Stdin        io.WriteCloser
 	encoder      *json.Encoder
 	Stdout       io.ReadCloser
-	HandleStdOut StdoutHandler
+	HandleStdout StdoutHandler
 	decoder      *json.Decoder
 	Stderr       io.ReadCloser
 	HandleStderr StderrHandler
@@ -47,7 +47,7 @@ func New(name string, args ...string) *SubProcess {
 // WithStdout 设置stdout输出的Message处理函数。
 // 需要在Start前调用。本库内部启动协程执行该回调。
 func (s *SubProcess) WithStdout(handleStdout StdoutHandler) *SubProcess {
-	s.HandleStdOut = handleStdout
+	s.HandleStdout = handleStdout
 	return s
 }
 
@@ -62,7 +62,7 @@ func (s *SubProcess) Start() error {
 	var err error
 
 	// 如果要和子进程用Message通信
-	if s.HandleStdOut != nil {
+	if s.HandleStdout != nil {
 		s.Stdin, err = s.Cmd.StdinPipe()
 		if err != nil {
 			s.Cancel()
@@ -106,7 +106,14 @@ func (s *SubProcess) loopRecvStdout() {
 		case <-s.Ctx.Done():
 			return
 		default:
-			s.HandleStdOut(s.doRecvOutMsg())
+			m, err := s.doRecvOutMsg()
+			s.HandleStdout(m, err)
+			if err == nil {
+				continue
+			} else if err == io.EOF || strings.Contains(err.Error(), "closed") {
+				// file already closed
+				return
+			}
 		}
 	}
 }
@@ -116,16 +123,27 @@ func (s *SubProcess) loopRecvStderr() {
 	io.Copy(s.HandleStderr, s.Stderr)
 }
 
-// Stop 停止子进程
+// Wait 等待子进程结束
+func (s *SubProcess) Wait() error {
+	return s.Cmd.Wait()
+}
+
+// Stop 停止子进程并等待结束
 func (s *SubProcess) Stop() {
 	if s.Alive {
 		s.Cancel()
-		s.Stdin.Close()
-		s.Stdout.Close()
-		s.Stderr.Close()
+		if s.Stdin != nil {
+			s.Stdin.Close()
+		}
+		if s.Stdout != nil {
+			s.Stdout.Close()
+		}
+		if s.Stderr != nil {
+			s.Stderr.Close()
+		}
 		s.Alive = false
-		s.Cmd.Wait()
 	}
+	s.Cmd.Wait()
 }
 
 // IsAlive 判断子进程是否存活
