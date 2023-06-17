@@ -12,3 +12,4 @@ A simple subprocess module for Go, like os/exec.
 ## TODO
 
 - [ ] make sure that if parent exit or panic, subprocess will exit too.
+- [ ] no dempends on util.Message.
