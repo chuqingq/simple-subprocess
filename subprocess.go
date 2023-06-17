@@ -10,7 +10,7 @@ import (
 	sjson "github.com/chuqingq/simple-json"
 )
 
-// SubProcess 对os.exec.Cmd的封装，用于启动子进程
+// SubProcess A subprocess, wrapper for os.exec.Cmd
 type SubProcess struct {
 	Cmd          *exec.Cmd
 	Alive        bool
@@ -25,10 +25,10 @@ type SubProcess struct {
 	HandleStderr StderrHandler
 }
 
-// StdoutHandler 用于处理子进程的stdout输出，(*json.Json, error)
+// StdoutHandler 用于处理子进程的stdout输出，接收一个*sjson.Json和error
 type StdoutHandler func(*sjson.Json, error)
 
-// StderrHandler 用于处理子进程的stderr输出，io.Writer
+// StderrHandler 用于处理子进程的stderr输出，接收一个io.Writer
 type StderrHandler io.Writer
 
 // New 创建一个SubProcess
