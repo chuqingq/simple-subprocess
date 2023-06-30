@@ -154,7 +154,7 @@ func (s *SubProcess) IsAlive() bool {
 // Send 向子进程发送消息
 func (s *SubProcess) Send(m *sjson.Json) error {
 	err := s.encoder.Encode(m)
-	if err == io.ErrClosedPipe || err == io.EOF || strings.Contains(err.Error(), "broken pipe") {
+	if err != nil && (err == io.ErrClosedPipe || err == io.EOF || strings.Contains(err.Error(), "broken pipe")) {
 		s.Cancel()
 		s.Alive = false
 	}
