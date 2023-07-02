@@ -86,9 +86,6 @@ func TestStdin(t *testing.T) {
 }
 
 func TestStderr(t *testing.T) {
-	resChan := make(chan int, 1)
-	defer close(resChan)
-
 	number := rand.Int()
 	input := fmt.Sprintf("%v", number)
 	p := New("sh", "-c", "echo -n "+input+" >&2")
