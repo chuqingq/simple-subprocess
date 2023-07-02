@@ -61,15 +61,16 @@ func (s *SubProcess) WithStderr(handleStderr StderrHandler) {
 func (s *SubProcess) Start() error {
 	var err error
 
+	// stdin
+	s.Stdin, err = s.Cmd.StdinPipe()
+	if err != nil {
+		s.Cancel()
+		return err
+	}
+	s.encoder = json.NewEncoder(s.Stdin)
+
 	// 如果要和子进程用Message通信
 	if s.HandleStdout != nil {
-		s.Stdin, err = s.Cmd.StdinPipe()
-		if err != nil {
-			s.Cancel()
-			return err
-		}
-		s.encoder = json.NewEncoder(s.Stdin)
-
 		s.Stdout, err = s.Cmd.StdoutPipe()
 		if err != nil {
 			s.Cancel()
