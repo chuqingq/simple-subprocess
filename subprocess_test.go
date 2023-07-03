@@ -7,17 +7,44 @@ import (
 	"math/rand"
 	"strconv"
 	"testing"
+	"time"
 
 	sjson "github.com/chuqingq/simple-json"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefault(t *testing.T) {
-	p := New("sh", "-c", "sleep 10")
+func TestStop(t *testing.T) {
+	p := New("sh", "-c", "sleep 3")
 	err := p.Start()
 	assert.Nil(t, err)
+
+	assert.Equal(t, true, p.HasFinished())
 	p.Stop()
-	assert.Equal(t, false, p.IsAlive())
+	assert.Equal(t, false, p.HasFinished())
+}
+
+func TestWait(t *testing.T) {
+	p := New("sh", "-c", "sleep 1")
+	err := p.Start()
+	assert.Nil(t, err)
+
+	assert.Equal(t, true, p.HasFinished())
+
+	p.Wait()
+	assert.Equal(t, false, p.HasFinished())
+}
+
+// TestAliveProcessExit 测试子进程被动停止
+func TestAliveProcessExit(t *testing.T) {
+	p := New("sh", "-c", "echo 123")
+	err := p.Start()
+	assert.Nil(t, err)
+	defer p.Stop()
+
+	assert.Equal(t, true, p.HasFinished())
+
+	time.Sleep(time.Millisecond * 100)
+	assert.Equal(t, false, p.HasFinished())
 }
 
 func TestStdout(t *testing.T) {
@@ -39,7 +66,7 @@ func TestStdout(t *testing.T) {
 	p.WithStdout(handleStdout)
 	err := p.Start()
 	assert.Nil(t, err)
-	p.Cmd.Wait()
+	p.Wait()
 
 	res := <-resChan
 	assert.Equal(t, number, res)
@@ -96,7 +123,7 @@ func TestStderr(t *testing.T) {
 	err := p.Start()
 	assert.Nil(t, err)
 
-	p.Cmd.Wait()
+	p.Wait()
 	log.Printf("stderr: %v", stderr.String())
 
 	assert.Equal(t, input, stderr.String())
