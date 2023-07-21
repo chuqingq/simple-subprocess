@@ -18,9 +18,9 @@ func TestStop(t *testing.T) {
 	err := p.Start()
 	assert.Nil(t, err)
 
-	assert.Equal(t, true, p.HasFinished())
-	p.Stop()
 	assert.Equal(t, false, p.HasFinished())
+	p.Stop()
+	assert.Equal(t, true, p.HasFinished())
 }
 
 func TestWait(t *testing.T) {
@@ -28,10 +28,10 @@ func TestWait(t *testing.T) {
 	err := p.Start()
 	assert.Nil(t, err)
 
-	assert.Equal(t, true, p.HasFinished())
+	assert.Equal(t, false, p.HasFinished())
 
 	p.Wait()
-	assert.Equal(t, false, p.HasFinished())
+	assert.Equal(t, true, p.HasFinished())
 }
 
 // TestAliveProcessExit 测试子进程被动停止
@@ -41,10 +41,10 @@ func TestAliveProcessExit(t *testing.T) {
 	assert.Nil(t, err)
 	defer p.Stop()
 
-	assert.Equal(t, true, p.HasFinished())
+	assert.Equal(t, false, p.HasFinished())
 
 	time.Sleep(time.Millisecond * 100)
-	assert.Equal(t, false, p.HasFinished())
+	assert.Equal(t, true, p.HasFinished())
 }
 
 func TestStdout(t *testing.T) {
