@@ -151,7 +151,7 @@ func (s *SubProcess) Stop() {
 
 // HasFinished 判断子进程是否执行完毕（或已经被停止）
 func (s *SubProcess) HasFinished() bool {
-	return s.cmd.ProcessState == nil
+	return s.cmd.ProcessState != nil
 }
 
 // Send 向子进程发送消息
