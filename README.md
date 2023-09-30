@@ -1,4 +1,4 @@
-# simple-subprocess
+# simple-subprocess [![GoDoc](https://pkg.go.dev/badge/github.com/chuqingq/simple-subprocess)](https://pkg.go.dev/github.com/chuqingq/simple-subprocess)
 A simple subprocess module for Go, like os/exec.
 
 
