@@ -15,7 +15,7 @@ import (
 // 1.通过Stop或Wait停止
 // 2.通过HasFinished判断是否已经停止（包括主动和被动）
 type SubProcess struct {
-	cmd          *exec.Cmd
+	Cmd          *exec.Cmd
 	waitMutex    sync.Mutex
 	Ctx          context.Context
 	Cancel       context.CancelFunc
@@ -40,7 +40,7 @@ func New(name string, args ...string) *SubProcess {
 	cmd := exec.CommandContext(ctx, name, args...)
 
 	return &SubProcess{
-		cmd:          cmd,
+		Cmd:          cmd,
 		Ctx:          ctx,
 		Cancel:       cancel,
 		HandleStderr: defaultHandleStderr,
@@ -65,7 +65,7 @@ func (s *SubProcess) Start() error {
 	var err error
 
 	// stdin
-	s.Stdin, err = s.cmd.StdinPipe()
+	s.Stdin, err = s.Cmd.StdinPipe()
 	if err != nil {
 		s.Cancel()
 		return err
@@ -74,7 +74,7 @@ func (s *SubProcess) Start() error {
 
 	// 如果要和子进程用Message通信
 	if s.HandleStdout != nil {
-		s.Stdout, err = s.cmd.StdoutPipe()
+		s.Stdout, err = s.Cmd.StdoutPipe()
 		if err != nil {
 			s.Cancel()
 			return err
@@ -85,14 +85,14 @@ func (s *SubProcess) Start() error {
 	}
 
 	// stderr如果不接收，可能会撑满
-	s.Stderr, err = s.cmd.StderrPipe()
+	s.Stderr, err = s.Cmd.StderrPipe()
 	if err != nil {
 		s.Cancel()
 		return err
 	}
 	go s.loopRecvStderr()
 
-	err = s.cmd.Start()
+	err = s.Cmd.Start()
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (s *SubProcess) loopRecvStderr() {
 // Wait 等待子进程结束。可能会多个协程Wait，因此需要加锁。
 func (s *SubProcess) Wait() error {
 	s.waitMutex.Lock()
-	err := s.cmd.Wait()
+	err := s.Cmd.Wait()
 	s.waitMutex.Unlock()
 	return err
 }
@@ -151,7 +151,7 @@ func (s *SubProcess) Stop() {
 
 // HasFinished 判断子进程是否执行完毕（或已经被停止）
 func (s *SubProcess) HasFinished() bool {
-	return s.cmd.ProcessState != nil
+	return s.Cmd.ProcessState != nil
 }
 
 // Send 向子进程发送消息
