@@ -1,8 +1,11 @@
 package subprocess
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"os/exec"
 	"strings"
@@ -170,6 +173,12 @@ func (s *SubProcess) doRecvOutMsg() (*sjson.Json, error) {
 	if err != nil {
 		if err == io.EOF {
 			s.Cancel()
+		} else if strings.Contains(err.Error(), "invalid character") {
+			br := bufio.NewReader(s.decoder.Buffered())
+			line, _, _ := br.ReadLine()
+			errstr := fmt.Sprintf("invalid line: %v", string(line))
+			err = errors.New(errstr)
+			s.decoder = json.NewDecoder(io.MultiReader(br, s.Stdout))
 		}
 		return nil, err
 	}

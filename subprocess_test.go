@@ -3,6 +3,7 @@ package subprocess
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"strconv"
@@ -70,6 +71,37 @@ func TestStdout(t *testing.T) {
 
 	res := <-resChan
 	assert.Equal(t, number, res)
+}
+
+func TestStdoutInvalidJson(t *testing.T) {
+	resChan := make(chan string, 1)
+	defer close(resChan)
+
+	p := New("sh", "-c", "echo abc; echo def; echo xyz")
+
+	handleStdout := func(j *sjson.Json, err error) {
+		if err == nil {
+			println("handleStdout: " + j.ToString())
+		} else if err == io.EOF {
+			println("handleStdout: io.EOF")
+		} else {
+			resChan <- err.Error()
+			println("handleStdout error: " + err.Error())
+		}
+	}
+	p.WithStdout(handleStdout)
+	err := p.Start()
+	assert.Nil(t, err)
+	p.Wait()
+
+	var res string
+
+	res = <-resChan
+	assert.Equal(t, res, "invalid line: abc")
+	res = <-resChan
+	assert.Equal(t, res, "invalid line: def")
+	res = <-resChan
+	assert.Equal(t, res, "invalid line: xyz")
 }
 
 func TestStdin(t *testing.T) {
