@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -81,12 +80,12 @@ func TestStdoutInvalidJson(t *testing.T) {
 
 	handleStdout := func(j *sjson.Json, err error) {
 		if err == nil {
-			println("handleStdout: " + j.ToString())
+			Logger.Debugf("handleStdout: %v", j.ToString())
 		} else if err == io.EOF {
-			println("handleStdout: io.EOF")
+			Logger.Debugf("handleStdout: io.EOF")
 		} else {
 			resChan <- err.Error()
-			println("handleStdout error: " + err.Error())
+			Logger.Errorf("handleStdout error: %v", err)
 		}
 	}
 	p.WithStdout(handleStdout)
@@ -134,12 +133,12 @@ func TestStdin(t *testing.T) {
 	}
 	// m.Set("channel", channel)
 	m.Set("channel", sjson.FromStruct(channel))
-	log.Printf("before send")
+	Logger.Debugf("before send")
 	err = p.Send(m)
 	assert.Nil(t, err)
-	log.Printf("before wait")
+	Logger.Debugf("before wait")
 
-	log.Printf("wait recv from resChan")
+	Logger.Debugf("wait recv from resChan")
 	res := <-resChan
 	assert.Equal(t, number, res)
 }
@@ -156,7 +155,7 @@ func TestStderr(t *testing.T) {
 	assert.Nil(t, err)
 
 	p.Wait()
-	log.Printf("stderr: %v", stderr.String())
+	Logger.Debugf("stderr: %v", stderr.String())
 
 	assert.Equal(t, input, stderr.String())
 }
